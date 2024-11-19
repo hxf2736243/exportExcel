@@ -16,37 +16,34 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @Aspect
 @Component
 public class ExportExcelAspect {
-    @Pointcut("@annotation(com.boxer.commom.annotation.ExportExcel)")
-    public void aroundPointcut(){}
+    //    @Pointcut("execution(* com..*.*demo.*.*(..)) @annotation(com.boxer.commom.annotation.ExportExcel)")
+    @Pointcut("@within(org.springframework.web.bind.annotation.RestController) @annotation(com.boxer.commom.annotation.ExportExcel)")
+    public void exportPointcut() {
+    }
 
-    @Around(value="aroundPointcut()")
-    public Object handleExport(ProceedingJoinPoint joinPoint)throws Throwable
-    {
-        log.info("handleExport------");
-        // 执行目标方法，获取数据
+    @Around("exportPointcut()")
+    public Object handleExport(ProceedingJoinPoint joinPoint) throws Throwable {
+        log.info("Excel export process started...");
         Object result = joinPoint.proceed();
 
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
-        ParameterizedType returnType = (ParameterizedType) method.getGenericReturnType();
-        Class<?> clazz = (Class<?>) returnType.getActualTypeArguments()[0];
-        ExportExcel exportExcel=method.getAnnotation(ExportExcel.class);
-        HttpServletResponse response=((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
+        if (result instanceof List<?> dataList) {
+            MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+            Method method = signature.getMethod();
+            ExportExcel exportExcel = method.getAnnotation(ExportExcel.class);
+            ParameterizedType returnType = (ParameterizedType) method.getGenericReturnType();
+            Class<?> clazz = (Class<?>) returnType.getActualTypeArguments()[0];
+            HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
 
-        if (result instanceof List<?>) {
-            List<?> dataList = (List<?>) result;
-            String fileName = exportExcel.fileName();
-
-            ExportExcelUtil.export(response, dataList, fileName,clazz);
-            return null;
-        }else{
-            return result;
+            // 调用工具类生成Excel
+            ExportExcelUtil.export(response, dataList, exportExcel.fileName(), clazz);
         }
+        log.info("Excel export process completed successfully.");
+        return result; // 返回null以终止后续逻辑
     }
+
 }
