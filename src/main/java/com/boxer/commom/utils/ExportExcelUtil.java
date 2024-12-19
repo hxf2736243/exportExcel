@@ -47,7 +47,7 @@ public class ExportExcelUtil {
             ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream(), clazz).autoCloseStream(false)
                     .build();
 
-            T totalRow = calculateTotalRow(records);
+            T totalRow = calculateTotalRow(records,totalText);
             // 第一次写入会创建头
             excelWriter.write(records, writeSheet, writeTable0);
             excelWriter.write(List.of(totalRow), writeSheet, writeTable0);
@@ -71,7 +71,7 @@ public class ExportExcelUtil {
      * @param <T>  数据类型
      * @return 含有合计值的对象
      */
-    public static <T> T calculateTotalRow(List<T> data) {
+    public static <T> T calculateTotalRow(List<T> data,String totalText) {
         if (data == null || data.isEmpty()) {
             throw new IllegalArgumentException("数据列表不能为空");
         }
@@ -116,7 +116,7 @@ public class ExportExcelUtil {
                 }
             } else if (field.getType() == String.class) {
                 try {
-                    field.set(totalRow, "合计");
+                    field.set(totalRow, totalText);
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
