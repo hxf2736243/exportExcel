@@ -13,7 +13,8 @@ public class ExportController {
 
     @Resource
     ProductService productService;
-    @ExportExcel(fileName = "图书统计表.xlsx", sameValueMergeColumns ={0,1},totalText = "总计",headHeight = 2, totalMergeColumnStart = 0, totalMergeColumnEnd = 2)
+//    @ExportExcel(fileName = "图书统计表.xlsx", sameValueMergeColumns ={0,1},enableTotal = true, totalMergeColumnStart = 0, totalMergeColumnEnd = 2)
+    @ExportExcel(fileName = "图书统计表.xlsx", sameValueMergeColumns ={0,1})
     @GetMapping("/product/export")
     public List<Book> export(){
         return productService.selectList();

@@ -12,7 +12,7 @@ public @interface ExportExcel {
     String fileName() default "data.xlsx";
     int[] sameValueMergeColumns() default {};
 
-    int headHeight() default 1;
+    boolean enableTotal() default false;
     int totalMergeColumnStart() default 0;
     int totalMergeColumnEnd() default 0;
     String totalText() default "合计";

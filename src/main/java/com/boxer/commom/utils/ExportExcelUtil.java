@@ -24,7 +24,7 @@ import java.util.List;
 
 @Slf4j
 public class ExportExcelUtil {
-    public static <T> void export(HttpServletResponse response, List<T> records, String fileName, Class<?> clazz, int[] mergeCols, int headHeight, int totalRowMergeStart, int totalRowMergeEnd, String totalText) {
+    public static <T> void export(HttpServletResponse response, List<T> records, String fileName, Class<?> clazz, int[] mergeCols, boolean enableTotal, int totalRowMergeStart, int totalRowMergeEnd, String totalText) {
         log.info("Exporting Excel file: {}", fileName);
         try (OutputStream output = response.getOutputStream()) {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -47,13 +47,16 @@ public class ExportExcelUtil {
             ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream(), clazz).autoCloseStream(false)
                     .build();
 
-            T totalRow = calculateTotalRow(records,totalText);
             // 第一次写入会创建头
             excelWriter.write(records, writeSheet, writeTable0);
-            excelWriter.write(List.of(totalRow), writeSheet, writeTable0);
-            if (totalRowMergeEnd > totalRowMergeStart) {
-                Sheet sheet = excelWriter.writeContext().writeSheetHolder().getSheet();
-                sheet.addMergedRegion(new CellRangeAddress(records.size() + headHeight, records.size() + headHeight, totalRowMergeStart, totalRowMergeEnd)); // 合并单元格
+            if (enableTotal) {
+                T totalRow = calculateTotalRow(records,totalText);
+                excelWriter.write(List.of(totalRow), writeSheet, writeTable0);
+                if (totalRowMergeEnd > totalRowMergeStart) {
+                    Sheet sheet = excelWriter.writeContext().writeSheetHolder().getSheet();
+                    int lastRowNum = sheet.getLastRowNum();
+                    sheet.addMergedRegion(new CellRangeAddress(lastRowNum, lastRowNum, totalRowMergeStart, totalRowMergeEnd)); // 合并单元格
+                }
             }
             excelWriter.finish();
 
