@@ -42,7 +42,7 @@ public class ExportExcelAspect {
 
             TotalRow totalRow = exportExcel.totalRow();
             // 调用工具类生成Excel
-            ExportExcelUtil.export(response, dataList, exportExcel.fileName(), clazz,exportExcel.sameValueMergeColumns(),totalRow.enableTotal(),totalRow.headHeight(),totalRow.totalMergeColumnStart(),totalRow.totalMergeColumnEnd(),totalRow.totalText());
+            ExportExcelUtil.export(response, dataList, exportExcel.fileName(), clazz,exportExcel.sameValueMergeColumns(),totalRow.enableTotal(),totalRow.totalMergeColumnStart(),totalRow.totalMergeColumnEnd(),totalRow.totalText());
         }
         log.info("Excel export process completed successfully.");
         return result; // 返回null以终止后续逻辑

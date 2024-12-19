@@ -24,7 +24,7 @@ import java.util.List;
 
 @Slf4j
 public class ExportExcelUtil {
-    public static <T> void export(HttpServletResponse response, List<T> records, String fileName, Class<?> clazz, int[] mergeCols, boolean addTotal,int headHeight, int totalRowMergeStart, int totalRowMergeEnd, String totalText) {
+    public static <T> void export(HttpServletResponse response, List<T> records, String fileName, Class<?> clazz, int[] mergeCols, boolean addTotal, int totalRowMergeStart, int totalRowMergeEnd, String totalText) {
         log.info("Exporting Excel file: {}", fileName);
         try (OutputStream output = response.getOutputStream()) {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -54,7 +54,9 @@ public class ExportExcelUtil {
                 excelWriter.write(List.of(totalRow), writeSheet, writeTable0);
                 if (totalRowMergeEnd > totalRowMergeStart) {
                     Sheet sheet = excelWriter.writeContext().writeSheetHolder().getSheet();
-                    sheet.addMergedRegion(new CellRangeAddress(records.size() + headHeight, records.size() + headHeight, totalRowMergeStart, totalRowMergeEnd)); // 合并单元格
+                    int lastRowNum = sheet.getLastRowNum();
+
+                    sheet.addMergedRegion(new CellRangeAddress(lastRowNum, lastRowNum, totalRowMergeStart, totalRowMergeEnd)); // 合并单元格
                 }
             }
             excelWriter.finish();

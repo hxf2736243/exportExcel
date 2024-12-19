@@ -8,7 +8,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface TotalRow {
     boolean enableTotal() default false;
-    int headHeight() default 1;
     int totalMergeColumnStart() default 0;
     int totalMergeColumnEnd() default 0;
     String totalText() default "合计";
