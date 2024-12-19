@@ -1,6 +1,7 @@
 package com.boxer.commom.aop;
 
 import com.boxer.commom.annotation.ExportExcel;
+import com.boxer.commom.annotation.TotalRow;
 import com.boxer.commom.utils.ExportExcelUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +40,9 @@ public class ExportExcelAspect {
             Class<?> clazz = (Class<?>) returnType.getActualTypeArguments()[0];
             HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
 
+            TotalRow totalRow = exportExcel.totalRow();
             // 调用工具类生成Excel
-            ExportExcelUtil.export(response, dataList, exportExcel.fileName(), clazz,exportExcel.sameValueMergeColumns(),exportExcel.headHeight(),exportExcel.totalMergeColumnStart(),exportExcel.totalMergeColumnEnd(),exportExcel.totalText());
+            ExportExcelUtil.export(response, dataList, exportExcel.fileName(), clazz,exportExcel.sameValueMergeColumns(),totalRow.enableTotal(),totalRow.headHeight(),totalRow.totalMergeColumnStart(),totalRow.totalMergeColumnEnd(),totalRow.totalText());
         }
         log.info("Excel export process completed successfully.");
         return result; // 返回null以终止后续逻辑
