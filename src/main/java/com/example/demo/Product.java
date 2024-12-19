@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.boxer.commom.annotation.MergeExcelColumn;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -8,10 +9,13 @@ import java.math.BigDecimal;
 
 @Data
 public class Product {
-    @ExcelProperty("产品名称")
+    @ExcelProperty("图书名称")
     private String name;
-    @ExcelProperty("生产厂家")
+    @ExcelProperty(value = "出版社",index = 0)
     private String factory;
-    @ExcelProperty("产品价格")
+    @ExcelProperty(value = "作者",index = 0)
+    private String author;
+
+    @ExcelProperty("价格")
     private BigDecimal price;
 }

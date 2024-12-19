@@ -40,7 +40,7 @@ public class ExportExcelAspect {
             HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
 
             // 调用工具类生成Excel
-            ExportExcelUtil.export(response, dataList, exportExcel.fileName(), clazz);
+            ExportExcelUtil.export(response, dataList, exportExcel.fileName(), clazz,exportExcel.mergeColumns(),exportExcel.headHeight(),exportExcel.totalRowMergeStart(),exportExcel.totalRowMergeEnd(),exportExcel.totalText());
         }
         log.info("Excel export process completed successfully.");
         return result; // 返回null以终止后续逻辑

@@ -10,4 +10,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExportExcel {
     String fileName() default "data.xlsx";
+    int[] mergeColumns() default {};
+
+    int headHeight() default 1;
+    int totalRowMergeStart() default 0;
+    int totalRowMergeEnd() default 0;
+    String totalText() default "合计";
 }

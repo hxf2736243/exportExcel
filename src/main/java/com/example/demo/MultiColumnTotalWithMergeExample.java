@@ -1,66 +1,129 @@
-package com.boxer.commom.utils;
+package com.example.demo;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.write.handler.RowWriteHandler;
+import com.alibaba.excel.write.handler.SheetWriteHandler;
+import com.alibaba.excel.write.handler.WriteHandler;
+import com.alibaba.excel.write.handler.context.RowWriteHandlerContext;
+import com.alibaba.excel.write.handler.context.SheetWriteHandlerContext;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.excel.write.metadata.WriteTable;
+import com.alibaba.excel.write.metadata.holder.WriteSheetHolder;
 import com.alibaba.excel.write.metadata.style.WriteCellStyle;
 import com.alibaba.excel.write.metadata.style.WriteFont;
 import com.alibaba.excel.write.style.HorizontalCellStyleStrategy;
-import com.alibaba.excel.write.style.column.LongestMatchColumnWidthStyleStrategy;
-import com.boxer.commom.handler.ExcelFillCellMergeStrategy;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
-public class ExportExcelUtil {
-    public static <T> void export(HttpServletResponse response, List<T> records, String fileName, Class<?> clazz, int[] mergeCols, int headHeight, int totalRowMergeStart, int totalRowMergeEnd, String totalText) {
-        log.info("Exporting Excel file: {}", fileName);
-        try (OutputStream output = response.getOutputStream()) {
-            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
-            response.setHeader("Content-Disposition", "attachment;filename*=UTF-8''" + encodedFileName);
+public class MultiColumnTotalWithMergeExample {
 
-            // 设置基础样式
-            HorizontalCellStyleStrategy horizontalCellStyleStrategy = new HorizontalCellStyleStrategy(getHeadStyle(), getContentStyle());
+    public static void main(String[] args) {
+        String fileName = "total-row-with-merge.xlsx";
+
+        // 准备数据
+        List<Data> dataList = generateData();
+
+        // 设置基础样式
+        HorizontalCellStyleStrategy horizontalCellStyleStrategy = new HorizontalCellStyleStrategy(getHeadStyle(), getContentStyle());
 
 
-            // 把sheet设置为不需要头 不然会输出sheet的头 这样看起来第一个table 就有2个头了
-            WriteSheet writeSheet = EasyExcel.writerSheet("Sheet1").needHead(Boolean.FALSE).build();
-            // 这里必须指定需要头，table 会继承sheet的配置，sheet配置了不需要，table 默认也是不需要
-            WriteTable writeTable0 = EasyExcel.writerTable(0).needHead(Boolean.TRUE)
-                    .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
-                    .registerWriteHandler(new ExcelFillCellMergeStrategy(0, mergeCols))
-                    .registerWriteHandler(horizontalCellStyleStrategy).build();
+        // 把sheet设置为不需要头 不然会输出sheet的头 这样看起来第一个table 就有2个头了
+        WriteSheet writeSheet = EasyExcel.writerSheet("sheetName").needHead(Boolean.FALSE).build();
+        // 这里必须指定需要头，table 会继承sheet的配置，sheet配置了不需要，table 默认也是不需要
+        WriteTable writeTable0 = EasyExcel.writerTable(0).needHead(Boolean.TRUE).registerWriteHandler(horizontalCellStyleStrategy).build();
 
-            ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream(), clazz).autoCloseStream(false)
-                    .build();
 
-            T totalRow = calculateTotalRow(records);
-            // 第一次写入会创建头
-            excelWriter.write(records, writeSheet, writeTable0);
-            excelWriter.write(List.of(totalRow), writeSheet, writeTable0);
-            if (totalRowMergeEnd > totalRowMergeStart) {
-                Sheet sheet = excelWriter.writeContext().writeSheetHolder().getSheet();
-                sheet.addMergedRegion(new CellRangeAddress(records.size() + headHeight, records.size() + headHeight, totalRowMergeStart, totalRowMergeEnd)); // 合并单元格
-            }
-            excelWriter.finish();
+        ExcelWriter excelWriter = EasyExcel.write(fileName, Data.class).autoCloseStream(false)
+                .build();
 
-            log.info("Excel export completed successfully.");
-        } catch (IOException e) {
-            throw new RuntimeException("Excel export failed due to an I/O error.", e);
+        // 第一次写入会创建头
+        excelWriter.write(dataList, writeSheet, writeTable0);
+
+        Data data1 = calculateTotalRow(dataList);
+
+        // 写入合计行并合并单元格,
+        // 第二次写不创建头，然后在第一次的后面写入数据
+        excelWriter.write(List.of(data1), writeSheet, writeTable0);
+        Sheet sheet = excelWriter.writeContext().writeSheetHolder().getSheet();
+        sheet.addMergedRegion(new CellRangeAddress(dataList.size()+1, dataList.size()+1, 0, 1)); // 合并单元格
+//        cell.setCellValue("合计"); // 设置合计文本
+
+        excelWriter.finish();
+    }
+
+    // 数据类
+    public static class Data {
+        public Data(){}
+        private String name;
+        private String category;
+        private Double value1;
+        private Double value2;
+        private Double value3;
+
+        public String getCategory() {
+            return category;
         }
+
+        public void setCategory(String category) {
+            this.category = category;
+        }
+
+        public Data(String name,String category, Double value1, Double value2, Double value3) {
+            this.name = name;
+            this.category=category;
+            this.value1 = value1;
+            this.value2 = value2;
+            this.value3 = value3;
+        }
+
+        // Getter 和 Setter
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Double getValue1() {
+            return value1;
+        }
+
+        public void setValue1(Double value1) {
+            this.value1 = value1;
+        }
+
+        public Double getValue2() {
+            return value2;
+        }
+
+        public void setValue2(Double value2) {
+            this.value2 = value2;
+        }
+
+        public Double getValue3() {
+            return value3;
+        }
+
+        public void setValue3(Double value3) {
+            this.value3 = value3;
+        }
+    }
+
+
+    // 示例数据
+    private static List<Data> generateData() {
+        List<Data> dataList = new ArrayList<>();
+        dataList.add(new Data("A","北京", 10.5, 20.0, 30.0));
+        dataList.add(new Data("B", "北京",15.0, 25.0, 35.0));
+        dataList.add(new Data("C","上海", 20.0, 30.0, 40.0));
+        return dataList;
     }
 
 
@@ -71,7 +134,7 @@ public class ExportExcelUtil {
      * @param <T>  数据类型
      * @return 含有合计值的对象
      */
-    public static <T> T calculateTotalRow(List<T> data) {
+    public static  <T> T calculateTotalRow(List<T> data) {
         if (data == null || data.isEmpty()) {
             throw new IllegalArgumentException("数据列表不能为空");
         }
@@ -109,14 +172,17 @@ public class ExportExcelUtil {
                     } else if (field.getType() == Long.class) {
                         field.set(totalRow, (long) sum);
                     } else if (field.getType() == BigDecimal.class) {
-                        field.set(totalRow, new BigDecimal(sum));
+                        field.set(totalRow, new BigDecimal(sum) );
                     }
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
             } else if (field.getType() == String.class) {
                 try {
-                    field.set(totalRow, "合计");
+                    // 设置合计行的标志字段（如 "合计"）
+                    if ("name".equalsIgnoreCase(field.getName())) {
+                        field.set(totalRow, "合计");
+                    }
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
@@ -226,6 +292,5 @@ public class ExportExcelUtil {
         //设置顶边框颜色
         cellStyle.setTopBorderColor(IndexedColors.BLACK1.getIndex());
     }
-
 
 }
